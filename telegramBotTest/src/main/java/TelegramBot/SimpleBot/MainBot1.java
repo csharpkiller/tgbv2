@@ -3,18 +3,15 @@ package TelegramBot.SimpleBot;
 
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
-import java.util.ArrayList;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+//  рекурсивно проверяет события бота, при получении добавляем в очередь для обработки => MessRec
 
 public class MainBot1 extends TelegramLongPollingBot {
     final int RECONNECT_PAUSE = 10000;
@@ -27,7 +24,7 @@ public class MainBot1 extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return "123";
+        return ReadSecretFiles.readBufferReader("secret");
     }
 
     @Override

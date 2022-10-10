@@ -4,7 +4,7 @@ import TelegramBot.User;
 import VKontakte.VkUserInfo;
 
 import java.util.ArrayList;
-
+// проверяем все ли есть у нас для спама ( аккаунт группа сообщение )
 public class HandleMainCommandSpam {
 
     /*public void start(User user) throws Exception {

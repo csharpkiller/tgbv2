@@ -74,7 +74,7 @@ public class RunnableSpam implements Runnable{
 
                 System.out.println(jsonString);
                 System.out.println("ССылка на сообщение: " + url);
-
+                // слип чтобы затестить и не забанить аккаунт
                 TimeUnit.SECONDS.sleep(10000000);
             }
         }

@@ -6,6 +6,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import java.util.ArrayList;
 import java.util.List;
 
+// кнопочки телеграм бота по которым можно клацать
+
 public class CheckButtons {
     public InlineKeyboardMarkup addButton(){
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();

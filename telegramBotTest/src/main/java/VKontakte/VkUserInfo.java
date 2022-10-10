@@ -5,6 +5,8 @@ import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.UserActor;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
 
+// объект для хроениня информации пользователя: vk login password
+
 public class VkUserInfo {
     private String login;
     private String password;

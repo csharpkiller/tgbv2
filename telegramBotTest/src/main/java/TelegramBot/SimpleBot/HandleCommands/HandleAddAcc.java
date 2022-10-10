@@ -8,7 +8,10 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
-
+/**
+ * класс проверяет все ли норм с логином и паролем что нам отправили, в правильном ли формате: login password
+ * и отсылает клиенту оч интересную информацию если была ошибка в парсинге или еще где - то)
+ * **/
 public class HandleAddAcc {
     private String login;
     private String password;
@@ -35,13 +38,11 @@ public class HandleAddAcc {
             String token = "";
             if(response.isSuccess()) token = (String)response.getData();
             this.token = token;
-        } catch (IOException e) {
-            /*e.printStackTrace();*/
-            return "Error! Wrong login or password / cant log in";
-        } catch (ParseException e) {
-            /*e.printStackTrace();*/
-            return "Error! Wrong login or password / cant log in";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return e.getMessage();
         }
+
         if(token.length() <= 1) return "Error! Wrong login or password / cant log in";
         return "";
     }

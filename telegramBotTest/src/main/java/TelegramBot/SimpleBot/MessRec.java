@@ -16,6 +16,16 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.*;
 
+/** рекурсивно проверяем появилось ли что - то у нас в очереди (update) => run(),
+ * если появилось, провреяем что за событие:
+ * 1) если пользователь нажал на кнопку ( функционал кнопок: показать текущую информацию без ввода данных),
+ * то показываем актуальную информацию => handleCallback() => handleCheck => ...
+ * 2) иначе проверяем => messageHandler()
+ * либо это команда => handleCommand()
+ * либо информация которую нам передали ( логин и пароль ) => handleAnswer()
+ * либо просто random message => handleMessage()
+**/
+
 public class MessRec {
     private final MainBot1 bot;
     private final int WAIT_FOR_NEW_MESSAGE_DELAY = 1000;

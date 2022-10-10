@@ -7,33 +7,73 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+
+// формируем запросы по данным( ссылки )
+/**
+ * Что нового>): заменил builder на string format
+ * заметил что делал URLEncoder для домена группы и сообщения, про пароль и логин конечно не подумал) добавил
+ * поставил обработчик ошибок везде где возможно и создал свое исключение куда для русского человека пишу что за ошибка и
+ * в каком месте она возника ( надеюсь правильно )
+ * добавил при описание метод где возникла MyExc но это для удобства отдладки если вдруг это произойдет, офк не нужно
+ * **/
 
 public class VkAPI {
     private static final controlVersion controlVersion = new controlVersion();
 
+    private static String encodeMesUtf8(String str) throws MyException {
+        try {
+            return URLEncoder.encode(str,"UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            throw new MyException("Ошибка в кодировке строки в utf-8");
+        }
+    }
+
     // >* token
-    public static VkAPIResponse getToken(String login, String password) throws IOException, ParseException {
+    public static VkAPIResponse getToken(String login, String password) throws MyException{
         String url = "https://oauth.vk.com/token?grant_type=password&client_id=2274003&client_secret=hHbZxrka2uZ6jB1inYsH&username=";
-        StringBuffer stringBuffer = new StringBuffer(url);
-        stringBuffer.append(login);
-        stringBuffer.append("&password=");
-        stringBuffer.append(password);
-        url = stringBuffer.toString();
-        if(errodDetection(linkConnect(url))) return createAnswer(linkConnect(url), "error");
-        return createAnswer(linkConnect(url), "access_token");
+//        StringBuffer stringBuffer = new StringBuffer(url);
+//        stringBuffer.append(login);
+//        stringBuffer.append("&password=");
+//        stringBuffer.append(password);
+//        url = stringBuffer.toString();
+
+        String link = String.format("%s%s&password=%s", url, encodeMesUtf8(login), encodeMesUtf8(password));
+
+//        if(errodDetection(linkConnect(url))) return createAnswer(linkConnect(url), "error");
+//        return createAnswer(linkConnect(url), "access_token");
+        String connect = linkConnect(link);
+        if(errorDetection(connect)){
+            return createAnswer(connect, "error");
+        }
+        return createAnswer(connect, "access_token");
     }
     // *<
 
     // >* group
-    private static VkAPIResponse createAnswer(String jsonString, String keyword) throws ParseException, IOException {
+    private static VkAPIResponse createAnswer(String jsonString, String keyword) throws MyException{
 
-        JSONParser parser = new JSONParser();
+        /*JSONParser parser = new JSONParser();
         JSONObject jsonObject= (JSONObject) parser.parse(jsonString);
 
-        /*boolean errorDetection = errodDetection(jsonString);
-        if(errorDetection) return new VkAPIResponse(getErrorNumber(jsonObject), true);*/
+        *//*boolean errorDetection = errodDetection(jsonString);
+        if(errorDetection) return new VkAPIResponse(getErrorNumber(jsonObject), true);*//*
+
+        if(keyword.equals("error")) return new VkAPIResponse<String>(jsonObject.get(keyword).toString(), true);
+
+        String answer = jsonObject.get(keyword).toString();
+        return new VkAPIResponse<String>(answer);*/
+
+        JSONParser parser = new JSONParser();
+        JSONObject jsonObject= null;
+        try {
+            jsonObject = (JSONObject) parser.parse(jsonString);
+        } catch (ParseException e) {
+            throw new MyException("Ошибка в парсинге Json объекта. (createAnswer)");
+        }
 
         if(keyword.equals("error")) return new VkAPIResponse<String>(jsonObject.get(keyword).toString(), true);
 
@@ -41,37 +81,55 @@ public class VkAPI {
         return new VkAPIResponse<String>(answer);
     }
 
-    private static String groupLink(String nameGroup, int offset, String access_token) throws IOException, ParseException {
+    private static String groupLink(String nameGroup, int offset, String access_token) throws MyException {
         String link = "https://api.vk.com/method/groups.getMembers?group_id=";
-        StringBuffer buffer = new StringBuffer(link);
-        String encodedUrl = URLEncoder.encode(nameGroup,"UTF-8");
-        buffer.append(nameGroup);
-        buffer.append("&v=");
-        buffer.append(controlVersion.getVersion());
-        buffer.append("&sort=id_desc&offset=");
-        buffer.append(offset);
-        buffer.append("&count=1&fields=can_write_private_message&access_token=");
-        buffer.append(access_token);
-        return buffer.toString();
+//        StringBuffer buffer = new StringBuffer(link);
+//        String encodedUrl = URLEncoder.encode(nameGroup,"UTF-8"); <- получается для логина и пароля забыл)
+//        buffer.append(nameGroup);
+//        buffer.append("&v=");
+//        buffer.append(controlVersion.getVersion());
+//        buffer.append("&sort=id_desc&offset=");
+//        buffer.append(offset);
+//        buffer.append("&count=1&fields=can_write_private_message&access_token=");
+//        buffer.append(access_token);
+//        return buffer.toString();
+        return String.format("%s%s&v=%s&sort=id_desc&offset=%s&count=1&fields=can_write_private_message&access_token=%s",
+                link, encodeMesUtf8(nameGroup), controlVersion.getVersion(), offset, access_token);
     }
 
-    private static String linkConnect(String url) throws ParseException, IOException {
-        Document document = Jsoup.connect(url).ignoreContentType(true).get();
+    private static String linkConnect(String url) throws MyException{
+        Document document = null;
+        try {
+            document = Jsoup.connect(url).ignoreContentType(true).get();
+        } catch (IOException e) {
+            throw new MyException("Ошибка в получении документа. (linkConnect)");
+        }
         String jsonString = document.body().text();
         return jsonString;
     }
 
-    public static VkAPIResponse createBaseUsers(String token, String group) throws IOException, ParseException {
+    public static VkAPIResponse createBaseUsers(String token, String group)throws MyException{
         ArrayList<Integer> usersId = new ArrayList<Integer>();
         int offset = 0;
         String url = groupLink(group, offset, token);
-        if(errodDetection(linkConnect(url))){
-            return createAnswer(linkConnect(url), "error");
+//        if(errodDetection(linkConnect(url))){
+//            return createAnswer(linkConnect(url), "error");
+//        }
+
+        String connect = linkConnect(url);
+        if(errorDetection(url)){
+            return createAnswer(url, "error");
         }
         return createBase(token, group, offset, url, usersId);
     }
-    private static VkAPIResponse createBase(String token, String group, int offset, String url, ArrayList<Integer> usersId) throws IOException {
-        Document document = Jsoup.connect(url).ignoreContentType(true).get();
+
+    private static VkAPIResponse createBase(String token, String group, int offset, String url, ArrayList<Integer> usersId) throws MyException{
+        Document document = null;
+        try {
+            document = Jsoup.connect(url).ignoreContentType(true).get();
+        } catch (IOException e) {
+            throw new MyException("Ошибка в получении документа. (createBase)");
+        }
         String str =document.body().text();
 
         int index = str.indexOf('[');
@@ -101,34 +159,45 @@ public class VkAPI {
 
     // >* message
 
-    public static VkAPIResponse createMessageLink(String domain, Integer userId, String message, String token) throws Exception{
+    public static VkAPIResponse createMessageLink(String domain, Integer userId, String message, String token) throws MyException{
         String url = "https://api.vk.com/method/messages.send?";
-        StringBuffer strBuffer = new StringBuffer(url);
+//        StringBuffer strBuffer = new StringBuffer(url);
+//
+//        if(domain != null){
+//            strBuffer.append("domain=");
+//            strBuffer.append(domain);
+//        }
+//        else if(userId != null){
+//            strBuffer.append("user_id=");
+//            strBuffer.append(userId);
+//        }
+//        strBuffer.append("&message=");
+//        message = URLEncoder.encode(message,"UTF-8"); <- ))))))
+//        strBuffer.append(message);
+//        strBuffer.append("&v=");
+//        strBuffer.append(controlVersion.getVersion());
+//        strBuffer.append("&access_token=");
+//        strBuffer.append(token);
+//        String messageUrl = strBuffer.toString();
 
-        if(domain != null){
-            strBuffer.append("domain=");
-            strBuffer.append(domain);
-        }
-        else if(userId != null){
-            strBuffer.append("user_id=");
-            strBuffer.append(userId);
-        }
-        strBuffer.append("&message=");
-        message = URLEncoder.encode(message,"UTF-8");
-        strBuffer.append(message);
-        strBuffer.append("&v=");
-        strBuffer.append(controlVersion.getVersion());
-        strBuffer.append("&access_token=");
-        strBuffer.append(token);
-        String messageUrl = strBuffer.toString();
+        String domUsId;
+        if(domain != null) domUsId = domain;
+        else domUsId = userId.toString();
+        String messageUrl = String.format("url%s&message=%s&v=%s&access_token=",
+                encodeMesUtf8(domUsId), encodeMesUtf8(message), controlVersion.getVersion(), token);
         return new VkAPIResponse<String>(messageUrl);
     }
 
     // *<
 
-    public static boolean errodDetection(String jsonString) throws ParseException {
+    public static boolean errorDetection(String jsonString) throws MyException{
         JSONParser parser = new JSONParser();
-        JSONObject jsonObject= (JSONObject) parser.parse(jsonString);
+        JSONObject jsonObject= null;
+        try {
+            jsonObject = (JSONObject) parser.parse(jsonString);
+        } catch (ParseException e) {
+            throw new MyException("Ошибка в парсинге Json объекта. (errorDetection)");
+        }
         if(jsonObject.get("error") != null){
             return true;
         }
@@ -147,3 +216,10 @@ public class VkAPI {
         return errorNumber;
     }
 }
+
+class MyException extends Exception{
+    public MyException(String message){
+        super(message);
+    }
+}
+

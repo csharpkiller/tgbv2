@@ -6,7 +6,7 @@ import org.json.simple.parser.ParseException;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.io.IOException;
-
+// just like HandleAddAcc
 public class HandleAddGroup{
     private final controlVersion controlVersion = new controlVersion();
     private String group;
@@ -25,10 +25,9 @@ public class HandleAddGroup{
        }
         try {
             connected = !VkAPI.createBaseUsers(controlVersion.getTestToken(), group).isSuccess();
-        } catch (IOException e) {
-            return "This is group with private users or wrong domain";
-        } catch (ParseException e) {
-            return "This is group with private users or wrong domain";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return e.getMessage();
         }
 
         if(connected) return "";

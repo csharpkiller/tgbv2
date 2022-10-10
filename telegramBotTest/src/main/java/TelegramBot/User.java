@@ -5,8 +5,9 @@ import VKontakte.VkUserInfo;
 
 import java.util.ArrayList;
 
+// этот класс нужен для messRec, здесь хроним историю общения с пользователем телеграмм бота
 public class User {
-    private long chatId;
+    private long chatId; // его чат id
     private String lastMessage;
     private boolean needAnswer;
     private ArrayList<VkUserInfo> vkAccountsInfo = new ArrayList<VkUserInfo>();
@@ -14,7 +15,7 @@ public class User {
     private String messageToSpam;
 
     //////////////////////////////////////////////
-    private RunnableSpam spamer;
+    private RunnableSpam spamer; // not used
     /////////////////////////////////////////////
 
     public User(long chatId){
@@ -69,7 +70,7 @@ public class User {
         return groupToSpam;
     }
 
-    /////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////// not used
     public void setSpamer(RunnableSpam spamer) {
         this.spamer = spamer;
     }

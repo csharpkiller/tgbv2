@@ -2,6 +2,8 @@ package TelegramBot.SimpleBot;
 
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+// main class создаем сущности и запускаем бота и ресивер => mainBot1
+
 public class Application {
     //private MainBot1 spamBot = new MainBot1();
 
