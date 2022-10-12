@@ -1,5 +1,7 @@
 package TelegramBot.SimpleBot.HandleCommands;
 
+import TelegramBot.TypeException;
+import TelegramBot.VkApiException;
 import VKontakte.VkAPI;
 import VKontakte.controlVersion;
 import org.json.simple.parser.ParseException;
@@ -24,10 +26,16 @@ public class HandleAddGroup{
                    "Use the format: groupDomain";
        }
         try {
-            connected = !VkAPI.createBaseUsers(controlVersion.getTestToken(), group).isSuccess();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return e.getMessage();
+            //connected = !VkAPI.createBaseUsers(controlVersion.getTestToken(), group).isSuccess();
+            connected = !VkAPI.tryGetOneUserGroup(group).isSuccess();
+        } catch (VkApiException e) {
+            if(e.getExcpType() == TypeException.IOException){
+                // do something
+            }
+            else{
+                HandlerException handlerException = new HandlerException(e);
+                handlerException.solveExcp();
+            }
         }
 
         if(connected) return "";

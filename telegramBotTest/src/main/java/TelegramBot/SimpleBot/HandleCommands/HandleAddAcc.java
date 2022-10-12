@@ -1,5 +1,6 @@
 package TelegramBot.SimpleBot.HandleCommands;
 
+import TelegramBot.VkApiException;
 import VKontakte.VkAPI;
 import VKontakte.VkAPIResponse;
 import VKontakte.VkUserInfo;
@@ -36,11 +37,10 @@ public class HandleAddAcc {
         try {
             VkAPIResponse response = VkAPI.getToken(login, password);
             String token = "";
-            if(response.isSuccess()) token = (String)response.getData();
+            if(!response.isSuccess()) token = (String)response.getData();
             this.token = token;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return e.getMessage();
+        } catch (VkApiException e) {
+
         }
 
         if(token.length() <= 1) return "Error! Wrong login or password / cant log in";

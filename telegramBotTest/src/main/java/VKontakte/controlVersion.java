@@ -8,7 +8,7 @@ import TelegramBot.SimpleBot.ReadSecretFiles;
 // need to be static
 public class controlVersion {
     private String version ="5.81";
-    private String testToken = ReadSecretFiles.readBufferReader("secret2");
+    private String testToken = ReadSecretFiles.readBufferReader("test_token.txt");
 
     public String getTestToken() {
         return testToken;

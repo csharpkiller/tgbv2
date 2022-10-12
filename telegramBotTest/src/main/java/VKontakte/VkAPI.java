@@ -1,5 +1,6 @@
 package VKontakte;
 
+import TelegramBot.VkApiException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -23,17 +24,17 @@ import java.util.ArrayList;
 public class VkAPI {
     private static final controlVersion controlVersion = new controlVersion();
 
-    private static String encodeMesUtf8(String str) throws MyException {
+    private static String encodeMesUtf8(String str) throws VkApiException {
         try {
             return URLEncoder.encode(str,"UTF-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
-            throw new MyException("Ошибка в кодировке строки в utf-8");
+            throw new VkApiException(e);
         }
     }
 
     // >* token
-    public static VkAPIResponse getToken(String login, String password) throws MyException{
+    public static VkAPIResponse getToken(String login, String password) throws VkApiException{
         String url = "https://oauth.vk.com/token?grant_type=password&client_id=2274003&client_secret=hHbZxrka2uZ6jB1inYsH&username=";
 //        StringBuffer stringBuffer = new StringBuffer(url);
 //        stringBuffer.append(login);
@@ -54,7 +55,7 @@ public class VkAPI {
     // *<
 
     // >* group
-    private static VkAPIResponse createAnswer(String jsonString, String keyword) throws MyException{
+    private static VkAPIResponse createAnswer(String jsonString, String keyword) throws VkApiException{
 
         /*JSONParser parser = new JSONParser();
         JSONObject jsonObject= (JSONObject) parser.parse(jsonString);
@@ -72,7 +73,7 @@ public class VkAPI {
         try {
             jsonObject = (JSONObject) parser.parse(jsonString);
         } catch (ParseException e) {
-            throw new MyException("Ошибка в парсинге Json объекта. (createAnswer)");
+            throw new VkApiException(e);
         }
 
         if(keyword.equals("error")) return new VkAPIResponse<String>(jsonObject.get(keyword).toString(), true);
@@ -81,7 +82,16 @@ public class VkAPI {
         return new VkAPIResponse<String>(answer);
     }
 
-    private static String groupLink(String nameGroup, int offset, String access_token) throws MyException {
+    public static VkAPIResponse tryGetOneUserGroup(String nameGroup) throws VkApiException {
+        String link = "https://api.vk.com/method/groups.getMembers?group_id=";
+        link = String.format("%s%s&v=%s&sort=id_desc&offset=%s&count=1&fields=can_write_private_message&access_token=%s",
+                link, encodeMesUtf8(nameGroup), controlVersion.getVersion(), 0, controlVersion.getTestToken());
+        String jsonString = linkConnect(link);
+        if(errorDetection(jsonString)) return createAnswer(jsonString, "error");
+        return new VkAPIResponse("test");
+    }
+
+    private static String groupLink(String nameGroup, int offset, String access_token) throws VkApiException {
         String link = "https://api.vk.com/method/groups.getMembers?group_id=";
 //        StringBuffer buffer = new StringBuffer(link);
 //        String encodedUrl = URLEncoder.encode(nameGroup,"UTF-8"); <- получается для логина и пароля забыл)
@@ -93,22 +103,22 @@ public class VkAPI {
 //        buffer.append("&count=1&fields=can_write_private_message&access_token=");
 //        buffer.append(access_token);
 //        return buffer.toString();
-        return String.format("%s%s&v=%s&sort=id_desc&offset=%s&count=1&fields=can_write_private_message&access_token=%s",
+        return String.format("%s%s&v=%s&sort=id_desc&offset=%s&count=1000&fields=can_write_private_message&access_token=%s",
                 link, encodeMesUtf8(nameGroup), controlVersion.getVersion(), offset, access_token);
     }
 
-    private static String linkConnect(String url) throws MyException{
+    private static String linkConnect(String url) throws VkApiException{
         Document document = null;
         try {
             document = Jsoup.connect(url).ignoreContentType(true).get();
         } catch (IOException e) {
-            throw new MyException("Ошибка в получении документа. (linkConnect)");
+            throw new VkApiException(e);
         }
         String jsonString = document.body().text();
         return jsonString;
     }
 
-    public static VkAPIResponse createBaseUsers(String token, String group)throws MyException{
+    public static VkAPIResponse createBaseUsers(String token, String group)throws VkApiException{
         ArrayList<Integer> usersId = new ArrayList<Integer>();
         int offset = 0;
         String url = groupLink(group, offset, token);
@@ -117,18 +127,18 @@ public class VkAPI {
 //        }
 
         String connect = linkConnect(url);
-        if(errorDetection(url)){
-            return createAnswer(url, "error");
+        if(errorDetection(connect)){
+            return createAnswer(connect, "error");
         }
         return createBase(token, group, offset, url, usersId);
     }
 
-    private static VkAPIResponse createBase(String token, String group, int offset, String url, ArrayList<Integer> usersId) throws MyException{
+    private static VkAPIResponse createBase(String token, String group, int offset, String url, ArrayList<Integer> usersId) throws VkApiException{
         Document document = null;
         try {
             document = Jsoup.connect(url).ignoreContentType(true).get();
         } catch (IOException e) {
-            throw new MyException("Ошибка в получении документа. (createBase)");
+            throw new VkApiException(e);
         }
         String str =document.body().text();
 
@@ -159,7 +169,7 @@ public class VkAPI {
 
     // >* message
 
-    public static VkAPIResponse createMessageLink(String domain, Integer userId, String message, String token) throws MyException{
+    public static VkAPIResponse createMessageLink(String domain, Integer userId, String message, String token) throws VkApiException{
         String url = "https://api.vk.com/method/messages.send?";
 //        StringBuffer strBuffer = new StringBuffer(url);
 //
@@ -190,13 +200,13 @@ public class VkAPI {
 
     // *<
 
-    public static boolean errorDetection(String jsonString) throws MyException{
+    public static boolean errorDetection(String jsonString) throws VkApiException{
         JSONParser parser = new JSONParser();
         JSONObject jsonObject= null;
         try {
             jsonObject = (JSONObject) parser.parse(jsonString);
         } catch (ParseException e) {
-            throw new MyException("Ошибка в парсинге Json объекта. (errorDetection)");
+            throw new VkApiException(e);
         }
         if(jsonObject.get("error") != null){
             return true;
@@ -217,9 +227,9 @@ public class VkAPI {
     }
 }
 
-class MyException extends Exception{
+ /*class MyException extends Exception{
     public MyException(String message){
         super(message);
     }
-}
+}*/
 

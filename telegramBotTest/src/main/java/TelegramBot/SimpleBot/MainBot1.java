@@ -24,7 +24,7 @@ public class MainBot1 extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return ReadSecretFiles.readBufferReader("secret");
+        return ReadSecretFiles.readBufferReader("bot_token.txt");
     }
 
     @Override
