@@ -1,5 +1,6 @@
 package TelegramBot.SimpleBot.HandleCommands;
 
+import TelegramBot.TypeException;
 import TelegramBot.VkApiException;
 import VKontakte.VkAPI;
 import VKontakte.VkAPIResponse;
@@ -7,6 +8,7 @@ import VKontakte.VkUserInfo;
 import org.json.simple.parser.ParseException;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
 /**
@@ -17,8 +19,9 @@ public class HandleAddAcc {
     private String login;
     private String password;
     private String token;
+    private boolean tryRecconect = false;
 
-    public String operate(Message message) {
+    public String operate(Message message) throws TelegramApiException {
         String textMessage = message.getText();
         String[] splt = textMessage.split(" ");
         String login;
@@ -40,7 +43,19 @@ public class HandleAddAcc {
             if(!response.isSuccess()) token = (String)response.getData();
             this.token = token;
         } catch (VkApiException e) {
-
+            if(e.getExcpType() == TypeException.IOException){
+                if(!tryRecconect){
+                    tryRecconect = true;
+                    operate(message);
+                }
+                else{
+                    return "connection error, please try again later";
+                }
+            }
+            else{
+                HandlerException handlerException = new HandlerException(e);
+                handlerException.solveExcp(e);
+            }
         }
 
         if(token.length() <= 1) return "Error! Wrong login or password / cant log in";

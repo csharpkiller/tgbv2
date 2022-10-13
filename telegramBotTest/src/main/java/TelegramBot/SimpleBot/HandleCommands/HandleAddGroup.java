@@ -6,6 +6,7 @@ import VKontakte.VkAPI;
 import VKontakte.controlVersion;
 import org.json.simple.parser.ParseException;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
 // just like HandleAddAcc
@@ -13,8 +14,9 @@ public class HandleAddGroup{
     private final controlVersion controlVersion = new controlVersion();
     private String group;
     boolean connected = true;
+    private boolean tryRecconect = false;
 
-    public String operate(Message message){
+    public String operate(Message message) throws TelegramApiException {
         String group;
        try{
            group = message.getText().split(" ")[0];
@@ -30,11 +32,17 @@ public class HandleAddGroup{
             connected = !VkAPI.tryGetOneUserGroup(group).isSuccess();
         } catch (VkApiException e) {
             if(e.getExcpType() == TypeException.IOException){
-                // do something
+                if(!tryRecconect){
+                    tryRecconect = true;
+                    operate(message);
+                }
+                else{
+                    return "connection error, please try again later";
+                }
             }
             else{
                 HandlerException handlerException = new HandlerException(e);
-                handlerException.solveExcp();
+                handlerException.solveExcp(e);
             }
         }
 

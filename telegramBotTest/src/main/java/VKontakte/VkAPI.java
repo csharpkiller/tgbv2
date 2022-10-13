@@ -33,6 +33,11 @@ public class VkAPI {
         }
     }
 
+    /*public static void test() throws VkApiException{
+        IOException exception = new IOException();
+        throw new VkApiException(exception);
+    }*/
+
     // >* token
     public static VkAPIResponse getToken(String login, String password) throws VkApiException{
         String url = "https://oauth.vk.com/token?grant_type=password&client_id=2274003&client_secret=hHbZxrka2uZ6jB1inYsH&username=";
